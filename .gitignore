@@ -1,1 +1,4 @@
 confluent-7.2.2/
+confluent/
+project/__pycache__/
+project/.ipynb_checkpoints/
