@@ -1,32 +1,8 @@
 import requests
 import json
-from pyspark_output_produce import country_prize_category_topic, country_prize_gender_topic, year_category_laureates_topic
-
-# {
-#     "name": "postgres-json-data-sink6",
-#     "config": {
-#         "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
-#         "connection.url": "jdbc:postgresql://localhost:5432/kafka_test",
-#         "connection.user": "postgres",
-#         "connection.password": "",
-#         "topics": "mydata6",
-#         "insert.mode": "insert",
-#         "catalog.pattern": "nobel-postgres-sink6",
-#         "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-#         "table.name.format": "kafka_connect.my_data_test4",
-#         "auto.create": "true",
-#         "auto.evolve": "true",
-#         "value.converter.schemas.enable": "true",
-#         "transforms": "flatten",
-#         "transforms.flatten.type": "org.apache.kafka.connect.transforms.Flatten$Value",
-#         "transforms.flatten.delimiter": "_"
-#     }
-# }
+from pyspark_output_produce import topic_list
 
 connector_url = 'http://127.0.0.1:8083/connectors'
-
-topic_list = [country_prize_category_topic,
-              country_prize_gender_topic, year_category_laureates_topic]
 
 table_name_list = ['country_prize_category',
                    'country_prize_gender', 'year_category_laureates']
@@ -59,18 +35,19 @@ def create_sink(topic, name, table_name, pk_fields):
 
 
 if __name__ == "__main__":
-    i = 0
-    for topic in topic_list:
+    sink_creation_success = True
+    for i in range(len(topic_list)):
         response = create_sink(
-            topic, f"kafka-postgres-sink{i+1}", table_name_list[i], pk_fields_list[i])
+            topic_list[i], f"kafka-postgres-sink{i+1}", table_name_list[i], pk_fields_list[i])
         if response.status_code != 201:
             print(
                 f"Could not create sink connector [kafka-postgres-sink{i+1}]. Error message is:")
             print(response.reason)
+            sink_creation_success = False
             break
         print(
             f"Sink connector [kafka-postgres-sink{i+1}] successfully created")
         print("======================================================")
-        i += 1
-    if i == 3:
+
+    if sink_creation_success:
         print("All sink connector creation successful")

@@ -4,13 +4,16 @@ from api_fetch_produce import jprint
 from schemas import country_prize_category_schema, country_prize_gender_schema, year_category_laureates_schema
 
 bootstrap_server = ['localhost:9092']
-# country_prize_category_topic = 'country_prize_category'
-# country_prize_gender_topic = 'country_prize_gender'
-# year_category_laureates_topic = 'year_category_laureates'
 
 country_prize_category_topic = 'topic1'
 country_prize_gender_topic = 'topic2'
 year_category_laureates_topic = 'topic3'
+
+# create topic list, schema list to iterate through it
+topic_list = [country_prize_category_topic,
+              country_prize_gender_topic, year_category_laureates_topic]
+schema_list = [country_prize_category_schema,
+               country_prize_gender_schema, year_category_laureates_schema]
 
 country_prize_category_file = './data/country_prize_category.json'
 country_prize_gender_file = './data/country_prize_gender.json'
@@ -44,41 +47,36 @@ def produce_message():
 
     with open(year_category_laureates_file, 'r') as f3:
         year_category_laureates_json_data = json.load(f3)
+
+    producer_list = []
     try:
-        producer1 = KafkaProducer(bootstrap_servers=bootstrap_server,
-                                  value_serializer=json_serializer)
-        producer2 = KafkaProducer(bootstrap_servers=bootstrap_server,
-                                  value_serializer=json_serializer)
-        producer3 = KafkaProducer(bootstrap_servers=bootstrap_server,
-                                  value_serializer=json_serializer)
+        for i in range(len(topic_list)):
+            producer = KafkaProducer(bootstrap_servers=bootstrap_server,
+                                     value_serializer=json_serializer)
+            producer_list.append(producer)
     except:
         print("Error! Could not create kafka producer")
         return
 
     # the production of all data should be done sequentially (data to one topic should be completed before sending data to another topic)
-    for item in country_prize_category_json_data:
-        data_to_send = {
-            "schema": country_prize_category_schema,
-            "payload": item
-        }
-        produce(producer1, country_prize_category_topic, data_to_send)
-    print('Finished producing country_prize_category_data by Producer1.\n===============================================')
 
-    for item in country_prize_gender_json_data:
-        data_to_send = {
-            "schema": country_prize_gender_schema,
-            "payload": item
-        }
-        produce(producer2, country_prize_gender_topic, data_to_send)
-    print('Finished producing country_prize_gender_data by Producer2.\n===============================================')
+    # json data list to iterate through it
+    json_data_list = [country_prize_category_json_data,
+                      country_prize_gender_json_data, year_category_laureates_json_data]
 
-    for item in year_category_laureates_json_data:
-        data_to_send = {
-            "schema": year_category_laureates_schema,
-            "payload": item
-        }
-        produce(producer3, year_category_laureates_topic, data_to_send)
-    print('Finished producing year_category_laureates_data by Producer3.\n===============================================')
+    if len(topic_list) != len(json_data_list) or len(topic_list) != len(schema_list):
+        print("You have not specified topic_list, json_data_list, schema_list properly")
+        return
+
+    for i in range(len(topic_list)):
+        for item in json_data_list[i]:
+            data_to_send = {
+                "schema": schema_list[i],
+                "payload": item
+            }
+            produce(producer_list[i], topic_list[i], data_to_send)
+        print(
+            f'Finished producing data by Producer{i+1}.\n===============================================')
 
     print('All data production tasks completed...Exiting...')
 
