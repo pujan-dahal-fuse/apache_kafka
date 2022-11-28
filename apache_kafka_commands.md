@@ -44,6 +44,17 @@ Commands to run kafka and to write/read message to/from topics:
         `kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group <group_name>`
     3.  Deleting a consumer group:  
         `kafka-consumer-groups --bootstrap-server localhost:9092 --delete --group <group_name>`
+7.  To run kafka connectors:
+
+    1. Install confluent hub, kafka jdbc connector:
+       `confluent-hub install confluentinc/kafka-connect-jdbc:latest`
+       this will install a folder called called confluent-hub-components inside share folder of your confluent kafka base folder.
+    2. Run connect distributed:
+       `connect-distributed <path_to_confluent_folder>/etc/kafka/connect-distributed.properties`
+
+8.  To run schema registry:
+    1. Run Schema Registry:
+       `schema-registry-start <path_to_confluent_folder>/schema-registry/schema-registry.properties`
 
 Notes: A consumer group is a group of consumers, which can read in a combined manner. Data/message read by one consumer is not read by another consumer within a consumer group. We know that a topic is divided into multiple partitions: each consumer in a consumer group is assigned partition/s to read from:
 
